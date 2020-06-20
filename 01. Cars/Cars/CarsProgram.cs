@@ -6,7 +6,8 @@
     {
         public static void Main()
         {
-            var game = new CarsGame();
+            var gameContext = new DefaultGameContext();
+            var game = new CarsGame(gameContext);
             game.Run();
         }
     }

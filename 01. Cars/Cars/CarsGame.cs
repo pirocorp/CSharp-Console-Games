@@ -7,14 +7,17 @@
 
     public class CarsGame
     {
+        private IGameContext _game;
+
         private const int INITIAL_GAME_SPEED = 33;
+        private const int MAX_GAME_SPEED = 10;
         private const int OPPONENT_CAR_GENERATION_SPEED = 2;
 
         private const int PLAYFIELD_WIDTH = 10;
         private const int PLAYFIELD_HEIGHT = 20;
 
-        private const int CONSOLE_WIDTH = 40;
-        private const int CONSOLE_HEIGHT = 20;
+        private const int CONSOLE_WIDTH = PLAYFIELD_WIDTH + 20;
+        private const int CONSOLE_HEIGHT = PLAYFIELD_HEIGHT;
 
         private const int INFO_OFFSET = 5;
 
@@ -29,6 +32,7 @@
         private const int OPPONENT_CAR_START_Y_COORDINATE = 0;
 
         private const int NEXT_LEVEL_THRESHOLD = 10;
+        private const int PLAYER_INITIAL_LIVES = 5;
 
         private readonly Random _randomGenerator;
         private Queue<ConsoleKey> _pressedKeys;
@@ -46,8 +50,10 @@
         /// <summary>
         /// Constructor of Cars Game object
         /// </summary>
-        public CarsGame()
+        public CarsGame(IGameContext game)
         {
+            this._game = game;
+
             Console.BufferHeight = Console.WindowHeight = CONSOLE_HEIGHT;
             Console.BufferWidth = Console.WindowWidth = CONSOLE_WIDTH;
 
@@ -55,9 +61,9 @@
 
             this._randomGenerator = new Random();
 
-            this._livesCount = 5;
+            this._livesCount = PLAYER_INITIAL_LIVES;
             this._score = 0;
-            this._level = 1;
+            this._level = 0;
             this._gameSpeed = INITIAL_GAME_SPEED - this._level;
 
             this._pressedKeys = new Queue<ConsoleKey>();
@@ -86,16 +92,16 @@
                 //Process players actions
                 this.ProcessPlayerActions();
 
-                if (iteration % _gameSpeed == 0)
+                if (iteration % this._gameSpeed == 0)
                 {
                     //Generate opponent car
                     this.GenerateOpponentCar();
                     //Move cars
-                    this.MoveCars(iteration);
+                    this.MoveCars();
                 }
 
-                if (iteration % _gameSpeed == 0
-                || this._isPlayerActionRegistered)
+                if (iteration % this._gameSpeed == 0
+                    || this._isPlayerActionRegistered)
                 {
                     //Collision detection 
                     this.CollisionDetector();
@@ -120,12 +126,11 @@
                 iteration = (iteration + 1) % 1000;
 
                 var newLevel = (this._score / NEXT_LEVEL_THRESHOLD);
-                newLevel = Math.Min(INITIAL_GAME_SPEED - 1, newLevel);
-
+                
                 if (this._level != newLevel)
                 {
                     this._level = newLevel;
-                    this._gameSpeed = INITIAL_GAME_SPEED - this._level;
+                    this._gameSpeed = Math.Max(MAX_GAME_SPEED, INITIAL_GAME_SPEED - this._level);
                     iteration = 1;
                 }
             }
@@ -198,7 +203,7 @@
         /// <summary>
         /// Move opponents cars
         /// </summary>
-        private void MoveCars(int iteration)
+        private void MoveCars()
         {
             var points = this._opponentsCars.Count;
 
@@ -235,7 +240,7 @@
         /// </summary>
         /// <param name="x">Left (x coordinate)</param>
         /// <param name="y">Top (y coordinate)</param>
-        /// <param name="c">Character to be printed on console</param>
+        /// <param name="str">String to be printed on console</param>
         /// <param name="color">Color of the character</param>
         private void PrintOnPosition(int x, int y, string str, 
             ConsoleColor color = ConsoleColor.Gray)
@@ -286,8 +291,14 @@
         /// </summary>
         private void DrawInfo()
         {
-            var x = PLAYFIELD_WIDTH + 2 * INFO_OFFSET;
-            var y = INFO_OFFSET; 
+            var x = PLAYFIELD_WIDTH + INFO_OFFSET;
+            var y = INFO_OFFSET;
+
+            //for (var i = 0; i < PLAYFIELD_HEIGHT; i++)
+            //{
+            //    this.PrintOnPosition(PLAYFIELD_WIDTH, i,"|");
+            //}
+
             this.PrintOnPosition(x, y, $"Lives: {this._livesCount}", ConsoleColor.White);
             this.PrintOnPosition(x, y + 1, $"Score: {this._score}", ConsoleColor.White);
             this.PrintOnPosition(x, y + 2, $"Level: {this._level}", ConsoleColor.White);
