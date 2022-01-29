@@ -8,6 +8,8 @@
 
         void AddFigure(IFigure inputFigure, int figureRow, int figureCol);
 
+        int GetFullLines();
+
         void Render();
     }
 }

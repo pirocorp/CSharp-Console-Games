@@ -4,6 +4,8 @@
 
     public interface ICollisionDetector
     {
+        bool Collision(IFigure tetrisFigure, int figureRow, int figureCol);
+
         bool GameOverCollision(IFigure figure, int figureRow, int figureCol);
 
         bool MoveDownCollision(IFigure figure, int figureRow, int figureCol);

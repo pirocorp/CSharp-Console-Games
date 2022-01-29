@@ -1,6 +1,7 @@
 ﻿namespace Tetris
 {
     using Engine.CollisionDetector;
+    using Engine.Info.HighScore;
     using Extensions;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -27,6 +28,7 @@
                 .AddTransient<IBorder, Border>()
                 .AddTransient<IInfo, Info>()
                 .AddScoped<ICollisionDetector, CollisionDetector>()
+                .AddScoped<IHighScore, HighScore>()
                 .AddScoped<ITetrisField, TetrisField>()
                 .AddSingleton<IRenderer, ConsoleRenderer>()
                 .AddSingleton<ITetrisFigureProvider, TetrisFigureProvider>()

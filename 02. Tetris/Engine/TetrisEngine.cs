@@ -23,7 +23,7 @@
 
         private int currentFigureRow;
         private int currentFigureCol;
-        private IFigure currentFigure;
+        private IFigure currentFigure = default!;
         private int frame;
         private GameState gameState;
         private int score;
@@ -47,12 +47,12 @@
 
             this.frame = 0;
             this.score = 0;
-            this.currentFigure = this.GetRandomFigure();
+            this.GetRandomFigure();
         }
 
         public void Run()
         {
-            this.gameState = GameState.Started;
+            this.GameStart();
 
             while (this.gameState is GameState.Started)
             {
@@ -67,6 +67,13 @@
             Console.ReadLine();
         }
 
+        private void Scoring()
+        {
+            var lines = this.tetrisField.GetFullLines();
+
+            this.score += ScorePerLines[lines];
+        }
+
         private void DrawCurrentFigure()
         {
             var rowOffset = this.currentFigureRow + BorderOffset;
@@ -75,21 +82,28 @@
             this.currentFigure.Render(rowOffset, colOffset);
         }
 
-        private IFigure GetRandomFigure()
+        private void GetRandomFigure()
         {
             var figure = this.figureProvider.GetRandomFigure();
 
             this.currentFigureRow = 0;
             this.currentFigureCol = this.random.Next(0, TetrisFieldWidth + 1 - figure.Figure.GetLength(1));
 
-            return figure;
+            this.currentFigure = figure;
         }
 
         private bool GameOver()
         {
             this.gameState = GameState.Stopped;
+            this.info.AddScore(this.score);
 
             return true;
+        }
+
+        private void GameStart()
+        {
+            this.gameState = GameState.Started;
+            this.border.Render();
         }
 
         private bool MoveDown()
@@ -145,6 +159,30 @@
             return success;
         }
 
+        private bool Rotate()
+        {
+            var result = this.currentFigure.TryRotate();
+
+            if (!result)
+            {
+                return result;
+            }
+
+            if (this.currentFigureCol > TetrisFieldWidth - this.currentFigure.Figure.GetLength(1))
+            {
+                this.currentFigure.UndoRotate();
+                return false;
+            }
+
+            if (!this.collisionDetector.Collision(this.currentFigure, this.currentFigureRow, this.currentFigureCol))
+            {
+                return result;
+            }
+
+            this.currentFigure.UndoRotate();
+            return false;
+        }
+
         private void ProcessUserInput()
         {
             if (!Console.KeyAvailable)
@@ -158,22 +196,24 @@
             var success = key switch
             {
                 ConsoleKey.Escape => this.GameOver(),
-                ConsoleKey.Spacebar or ConsoleKey.UpArrow or ConsoleKey.W => false, // TODO: Rotate
+                ConsoleKey.Spacebar or ConsoleKey.UpArrow or ConsoleKey.W => this.Rotate(),
                 ConsoleKey.A or ConsoleKey.LeftArrow => this.MoveLeft(),
                 ConsoleKey.D or ConsoleKey.RightArrow => this.MoveRight(),
                 ConsoleKey.S or ConsoleKey.DownArrow => this.MoveDown(),
                 _ => false
             };
 
-            this.renderer.NewFrame();
+            if (success)
+            {
+                this.renderer.NewFrame();
+            }
         }
 
         private void Render()
         {
-            this.border.Render();
             this.info.Render(this.score, this.frame, this.currentFigureRow, this.currentFigureCol);
-            this.DrawCurrentFigure();
             this.tetrisField.Render();
+            this.DrawCurrentFigure();
         }
 
         private void UpdateState()
@@ -198,7 +238,10 @@
             }
 
             this.tetrisField.AddFigure(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
-            this.currentFigure = this.GetRandomFigure();
+
+            this.Scoring();
+
+            this.GetRandomFigure();
 
             var isGameOver = this.collisionDetector
                 .GameOverCollision(this.currentFigure, this.currentFigureRow, this.currentFigureCol);

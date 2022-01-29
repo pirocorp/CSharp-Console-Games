@@ -5,5 +5,9 @@
         bool[,] Figure { get; }
 
         void Render(int rowOffset, int colOffset);
+
+        bool TryRotate();
+
+        void UndoRotate();
     }
 }

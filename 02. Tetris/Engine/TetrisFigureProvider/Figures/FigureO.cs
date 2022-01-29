@@ -14,6 +14,6 @@
             };
         }
 
-        public override bool[,] Figure { get; }
+        public override bool TryRotate() => false;
     }
 }

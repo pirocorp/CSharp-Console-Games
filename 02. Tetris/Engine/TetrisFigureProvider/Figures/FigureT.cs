@@ -13,7 +13,5 @@
                 { true, true, true },
             };
         }
-
-        public override bool[,] Figure { get; }
     }
 }

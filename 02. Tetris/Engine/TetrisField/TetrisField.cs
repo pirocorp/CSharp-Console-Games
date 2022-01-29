@@ -34,20 +34,57 @@
             }
         }
 
+        public int GetFullLines()
+        {
+            var lines = 0;
+
+            for (var row = 0; row < this.tetrisField.GetLength(0); row++)
+            {
+                if (this.IsRowFull(row))
+                {
+                    this.MoveAboveRowsDown(row);
+                    lines++;
+                }
+            }
+
+            return lines;
+        }
+
         public void Render()
         {
             for (var row = 0; row < this.tetrisField.GetLength(0); row++)
             {
+                var result = string.Empty;
+
                 for (var col = 0; col < this.tetrisField.GetLength(1); col++)
                 {
-                    if (this.tetrisField[row, col])
-                    {
-                        this.renderer.RenderObject(
-                            BlockCharacter.ToString(),
-                            row + BorderOffset,
-                            col + BorderOffset,
-                            TetrisColor);
-                    }
+                    result += this.tetrisField[row, col] ? BlockCharacter.ToString() : " ";
+                }
+
+                this.renderer.RenderObject(result, row + BorderOffset, BorderOffset, TetrisColor);
+            }
+        }
+
+        private bool IsRowFull(int row)
+        {
+            for (var col = 0; col < this.tetrisField.GetLength(1); col++)
+            {
+                if (!this.tetrisField[row, col])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void MoveAboveRowsDown(int row)
+        {
+            for (var rowToMove = row; rowToMove > 0; rowToMove--)
+            {
+                for (var col = 0; col < this.tetrisField.GetLength(1); col++)
+                {
+                    this.tetrisField[rowToMove, col] = this.tetrisField[rowToMove - 1, col];
                 }
             }
         }

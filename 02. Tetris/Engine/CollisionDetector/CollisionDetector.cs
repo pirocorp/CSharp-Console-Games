@@ -14,27 +14,7 @@
             this.tetrisField = tetrisField;
         }
 
-        public bool GameOverCollision(IFigure tetrisFigure, int figureRow, int figureCol)
-        {
-            if (!this.IsAtTheBottom(tetrisFigure, figureRow))
-            {
-                return this.MoveDown(tetrisFigure, figureRow, figureCol);
-            }
-
-            return false;
-        }
-
-        public bool MoveDownCollision(IFigure tetrisFigure, int figureRow, int figureCol)
-            => this.IsAtTheBottom(tetrisFigure, figureRow)
-               || this.MoveDown(tetrisFigure, figureRow, figureCol);
-
-        public bool MoveLeftCollision(IFigure tetrisFigure, int figureRow, int figureCol)
-            => this.Collision(tetrisFigure, figureRow, figureCol - 1);
-
-        public bool MoveRightCollision(IFigure tetrisFigure, int figureRow, int figureCol)
-            => this.Collision(tetrisFigure, figureRow, figureCol + 1);
-
-        private bool Collision(IFigure tetrisFigure, int figureRow, int figureCol)
+        public bool Collision(IFigure tetrisFigure, int figureRow, int figureCol)
         {
             var figure = tetrisFigure.Figure;
 
@@ -52,6 +32,27 @@
 
             return false;
         }
+
+        public bool GameOverCollision(IFigure tetrisFigure, int figureRow, int figureCol)
+        {
+            if (!this.IsAtTheBottom(tetrisFigure, figureRow))
+            {
+                return
+                    this.MoveDown(tetrisFigure, figureRow, figureCol);
+            }
+
+            return false;
+        }
+
+        public bool MoveDownCollision(IFigure tetrisFigure, int figureRow, int figureCol)
+            => this.IsAtTheBottom(tetrisFigure, figureRow)
+               || this.MoveDown(tetrisFigure, figureRow, figureCol);
+
+        public bool MoveLeftCollision(IFigure tetrisFigure, int figureRow, int figureCol)
+            => this.Collision(tetrisFigure, figureRow, figureCol - 1);
+
+        public bool MoveRightCollision(IFigure tetrisFigure, int figureRow, int figureCol)
+            => this.Collision(tetrisFigure, figureRow, figureCol + 1);
 
         private bool IsAtTheBottom(IFigure tetrisFigure, int figureRow)
         {

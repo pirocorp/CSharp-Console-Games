@@ -6,27 +6,34 @@
     public class TetrisFigureProvider : ITetrisFigureProvider
     {
         private readonly Random random;
-        private readonly IList<IFigure> tetrisFigures;
+        private readonly IRenderer renderer;
+        private readonly IList<Type> tetrisFigures;
 
         public TetrisFigureProvider(IRenderer renderer)
         {
             this.random = new Random();
-            this.tetrisFigures = GetTetrisFigures(renderer).ToList();
+            this.renderer = renderer;
+            this.tetrisFigures = GetTetrisFigures().ToList();
         }
 
         public IFigure GetRandomFigure()
-            => this.tetrisFigures[this.random.Next(0, this.tetrisFigures.Count)];
+        {
+            var type = this.tetrisFigures[this.random.Next(0, this.tetrisFigures.Count)];
+            var instance = (IFigure)Activator.CreateInstance(type, this.renderer)!;
 
-        private static IEnumerable<IFigure> GetTetrisFigures(IRenderer renderer)
-            => new List<IFigure>(8)
+            return instance;
+        }
+
+        private static IEnumerable<Type> GetTetrisFigures()
+            => new List<Type>(8)
             {
-                new FigureI(renderer),
-                new FigureJ(renderer),
-                new FigureL(renderer),
-                new FigureO(renderer),
-                new FigureS(renderer),
-                new FigureT(renderer),
-                new FigureZ(renderer),
+                typeof(FigureI),
+                typeof(FigureJ),
+                typeof(FigureL),
+                typeof(FigureO),
+                typeof(FigureS),
+                typeof(FigureT),
+                typeof(FigureZ),
             };
     }
 }
