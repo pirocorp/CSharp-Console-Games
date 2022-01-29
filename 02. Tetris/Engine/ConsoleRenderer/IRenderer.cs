@@ -2,7 +2,9 @@
 {
     public interface IRenderer
     {
-        void RenderFrame();
+        void DisplayGameOverMessage(int score);
+
+        void NewFrame();
 
         void RenderObject(
             string text,

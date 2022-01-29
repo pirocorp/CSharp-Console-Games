@@ -1,5 +1,7 @@
 ﻿namespace Tetris
 {
+    using Engine.CollisionDetector;
+    using Extensions;
     using Microsoft.Extensions.DependencyInjection;
 
     using Tetris.Engine;
@@ -21,12 +23,13 @@
 
         internal static IServiceProvider RegisterServices()
             => new ServiceCollection()
+                .AddTetrisEngine()
                 .AddTransient<IBorder, Border>()
                 .AddTransient<IInfo, Info>()
-                .AddTransient<TetrisEngine>()
-                .AddTransient<ITetrisField, TetrisField>()
-                .AddSingleton<ITetrisFigureProvider, TetrisFigureProvider>()
+                .AddScoped<ICollisionDetector, CollisionDetector>()
+                .AddScoped<ITetrisField, TetrisField>()
                 .AddSingleton<IRenderer, ConsoleRenderer>()
+                .AddSingleton<ITetrisFigureProvider, TetrisFigureProvider>()
                 .BuildServiceProvider();
     }
 }

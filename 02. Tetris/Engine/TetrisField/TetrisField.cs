@@ -16,6 +16,8 @@
             this.tetrisField = new bool[TetrisFieldHeight, TetrisFieldWidth];
         }
 
+        public bool this[int row, int col] => this.tetrisField[row, col];
+
         public void AddFigure(IFigure inputFigure, int figureRow, int figureCol)
         {
             var figure = inputFigure.Figure;
@@ -40,7 +42,11 @@
                 {
                     if (this.tetrisField[row, col])
                     {
-                        this.renderer.RenderObject(BlockCharacter.ToString(), row + BorderOffset, col + BorderOffset, TetrisColor);
+                        this.renderer.RenderObject(
+                            BlockCharacter.ToString(),
+                            row + BorderOffset,
+                            col + BorderOffset,
+                            TetrisColor);
                     }
                 }
             }

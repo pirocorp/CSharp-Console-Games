@@ -1,6 +1,7 @@
 ﻿namespace Tetris.Engine
 {
     using Tetris.Engine.Border;
+    using Tetris.Engine.CollisionDetector;
     using Tetris.Engine.ConsoleRenderer;
     using Tetris.Engine.Info;
     using Tetris.Engine.TetrisField;
@@ -11,9 +12,9 @@
 
     public class TetrisEngine
     {
-        private const int FallingSpeedDenominator = 60;
-
         private readonly IBorder border;
+        private readonly ICollisionDetector collisionDetector;
+        private readonly int gameSpeedDenominator;
         private readonly IInfo info;
         private readonly Random random;
         private readonly IRenderer renderer;
@@ -29,12 +30,15 @@
 
         public TetrisEngine(
             IBorder border,
+            ICollisionDetector collisionDetector,
             IInfo info,
             ITetrisField tetrisField,
             ITetrisFigureProvider figureProvider,
             IRenderer renderer)
         {
             this.border = border;
+            this.collisionDetector = collisionDetector;
+            this.gameSpeedDenominator = TetrisInitialSpeedDenominator;
             this.info = info;
             this.random = new Random();
             this.renderer = renderer;
@@ -58,16 +62,9 @@
                 this.Render();
                 Thread.Sleep(20);
             }
-        }
 
-        private bool CollisionDetection()
-        {
-            if (this.currentFigureRow == TetrisFieldHeight - this.currentFigure.Figure.GetLength(0))
-            {
-                return true;
-            }
-
-            return false;
+            this.renderer.DisplayGameOverMessage(this.score);
+            Console.ReadLine();
         }
 
         private void DrawCurrentFigure()
@@ -88,15 +85,64 @@
             return figure;
         }
 
-        private void MoveLeft()
-            => this.currentFigureCol = Math.Max(0, this.currentFigureCol - 1);
-
-        private void MoveRight()
+        private bool GameOver()
         {
-            if (this.currentFigureCol < TetrisFieldWidth - this.currentFigure.Figure.GetLength(1))
+            this.gameState = GameState.Stopped;
+
+            return true;
+        }
+
+        private bool MoveDown()
+        {
+            var maxPosition = TetrisFieldHeight - this.currentFigure.Figure.GetLength(0);
+
+            var success = !this.collisionDetector
+                .MoveDownCollision(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+
+            if (success)
+            {
+                this.currentFigureRow = Math.Min(maxPosition, this.currentFigureRow + 1);
+            }
+
+            this.frame = this.currentFigureRow == maxPosition || !success ? this.gameSpeedDenominator : 1;
+
+            return success;
+        }
+
+        private bool MoveLeft()
+        {
+            if (this.currentFigureCol <= 0)
+            {
+                return false;
+            }
+
+            var success = !this.collisionDetector
+                .MoveLeftCollision(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+
+            if (success)
+            {
+                this.currentFigureCol--;
+            }
+
+            return success;
+        }
+
+        private bool MoveRight()
+        {
+            if (this.currentFigureCol >= TetrisFieldWidth - this.currentFigure.Figure.GetLength(1))
+            {
+                return false;
+            }
+
+            var success = !this.collisionDetector
+                .MoveRightCollision(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+
+            if (success)
             {
                 this.currentFigureCol++;
             }
+
+            return success;
         }
 
         private void ProcessUserInput()
@@ -106,39 +152,20 @@
                 return;
             }
 
-            var consoleKey = Console.ReadKey();
+            var consoleKey = Console.ReadKey(true);
+            var key = consoleKey.Key;
 
-            switch (consoleKey.Key)
+            var success = key switch
             {
-                case ConsoleKey.Escape:
-                    this.gameState = GameState.Stopped;
-                    break;
-                case ConsoleKey.Spacebar:
-                case ConsoleKey.UpArrow:
-                case ConsoleKey.W:
-                    // Rotate
-                    break;
-                case ConsoleKey.LeftArrow:
-                case ConsoleKey.A:
-                    this.MoveLeft();
-                    break;
-                case ConsoleKey.RightArrow:
-                case ConsoleKey.D:
-                    this.MoveRight();
-                    break;
-                case ConsoleKey.DownArrow:
-                case ConsoleKey.S:
-                    this.frame = 1;
-                    this.score++;
+                ConsoleKey.Escape => this.GameOver(),
+                ConsoleKey.Spacebar or ConsoleKey.UpArrow or ConsoleKey.W => false, // TODO: Rotate
+                ConsoleKey.A or ConsoleKey.LeftArrow => this.MoveLeft(),
+                ConsoleKey.D or ConsoleKey.RightArrow => this.MoveRight(),
+                ConsoleKey.S or ConsoleKey.DownArrow => this.MoveDown(),
+                _ => false
+            };
 
-                    // TODO: Move Down
-                    this.currentFigureRow++;
-                    break;
-                default:
-                    return;
-            }
-
-            this.renderer.RenderFrame();
+            this.renderer.NewFrame();
         }
 
         private void Render()
@@ -151,20 +178,34 @@
 
         private void UpdateState()
         {
-            if (this.frame % FallingSpeedDenominator == 0)
+            if (this.frame % this.gameSpeedDenominator != 0)
             {
-                this.frame = 0;
-
-                this.currentFigureRow++;
-                this.renderer.RenderFrame();
+                return;
             }
 
-            if (this.CollisionDetection())
-            {
-                this.tetrisField.AddFigure(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
-                this.currentFigure = this.GetRandomFigure();
+            this.frame = 0;
+            this.renderer.NewFrame();
 
-                this.renderer.RenderFrame();
+            var hasCollision =
+                this.collisionDetector
+                    .MoveDownCollision(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+
+            if (!hasCollision)
+            {
+                this.currentFigureRow++;
+
+                return;
+            }
+
+            this.tetrisField.AddFigure(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+            this.currentFigure = this.GetRandomFigure();
+
+            var isGameOver = this.collisionDetector
+                .GameOverCollision(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+
+            if (isGameOver)
+            {
+                this.GameOver();
             }
         }
     }

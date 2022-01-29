@@ -1,7 +1,7 @@
 ﻿namespace Tetris.Engine.TetrisFigureProvider
 {
-    using Tetris.Engine.TetrisFigureProvider.Figures;
     using Tetris.Engine.ConsoleRenderer;
+    using Tetris.Engine.TetrisFigureProvider.Figures;
 
     public class TetrisFigureProvider : ITetrisFigureProvider
     {

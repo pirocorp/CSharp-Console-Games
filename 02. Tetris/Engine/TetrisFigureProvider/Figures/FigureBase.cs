@@ -26,7 +26,7 @@
                         var figureCol = col + colOffset;
                         var figureRow = row + rowOffset;
 
-                        this.renderer.RenderObject(BlockCharacter.ToString(), figureRow, figureCol, TetrisColor);
+                        this.renderer.RenderObject(BlockCharacter.ToString(), figureRow, figureCol, FigureColor);
                     }
                 }
             }
