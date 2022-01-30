@@ -4,6 +4,6 @@
     {
         void AddScore(int score);
 
-        void Render(int score, int frame, int currentFigureRow, int currentFigureCol);
+        void Render(int score, int frame, int level, int currentFigureRow, int currentFigureCol);
     }
 }

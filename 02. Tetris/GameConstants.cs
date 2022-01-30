@@ -14,11 +14,15 @@
 
         public const int InfoFieldWidth = 15;
 
+        public const int LevelSpeedIncrease = 5;
+
+        public const int LevelChangeThreshold = 10;
+
         public const int TetrisFieldWidth = 10;
 
         public const int TetrisFieldHeight = 20;
 
-        public const int TetrisInitialSpeedDenominator = 50;
+        public const int TetrisInitialSpeedDenominator = 51;
 
         public const ConsoleColor BorderColor = ConsoleColor.Gray;
 

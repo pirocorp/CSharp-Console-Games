@@ -14,7 +14,6 @@
     {
         private readonly IBorder border;
         private readonly ICollisionDetector collisionDetector;
-        private readonly int gameSpeedDenominator;
         private readonly IInfo info;
         private readonly Random random;
         private readonly IRenderer renderer;
@@ -25,7 +24,10 @@
         private int currentFigureCol;
         private IFigure currentFigure = default!;
         private int frame;
+        private int gameSpeedDenominator;
         private GameState gameState;
+        private int level;
+        private int lines;
         private int score;
 
         public TetrisEngine(
@@ -38,7 +40,6 @@
         {
             this.border = border;
             this.collisionDetector = collisionDetector;
-            this.gameSpeedDenominator = TetrisInitialSpeedDenominator;
             this.info = info;
             this.random = new Random();
             this.renderer = renderer;
@@ -46,6 +47,9 @@
             this.figureProvider = figureProvider;
 
             this.frame = 0;
+            this.gameSpeedDenominator = TetrisInitialSpeedDenominator;
+            this.level = 1;
+            this.lines = 0;
             this.score = 0;
             this.GetRandomFigure();
         }
@@ -69,9 +73,23 @@
 
         private void Scoring()
         {
-            var lines = this.tetrisField.GetFullLines();
+            var currentLines = this.tetrisField.GetFullLines();
 
-            this.score += ScorePerLines[lines];
+            if (currentLines is 0)
+            {
+                return;
+            }
+
+            var maxLevel = TetrisInitialSpeedDenominator / LevelSpeedIncrease;
+
+            this.lines += currentLines;
+
+            var currentLevel = this.lines / LevelChangeThreshold;
+
+            this.level = Math.Min(maxLevel, 1 + currentLevel);
+            this.gameSpeedDenominator = TetrisInitialSpeedDenominator - (this.level * LevelSpeedIncrease);
+
+            this.score += ScorePerLines[currentLines] * this.level;
         }
 
         private void DrawCurrentFigure()
@@ -211,7 +229,12 @@
 
         private void Render()
         {
-            this.info.Render(this.score, this.frame, this.currentFigureRow, this.currentFigureCol);
+            this.info.Render(
+                this.score,
+                this.frame,
+                this.level,
+                this.currentFigureRow,
+                this.currentFigureCol);
             this.tetrisField.Render();
             this.DrawCurrentFigure();
         }
