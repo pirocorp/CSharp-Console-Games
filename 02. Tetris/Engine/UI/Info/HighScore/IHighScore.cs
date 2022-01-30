@@ -1,4 +1,4 @@
-﻿namespace Tetris.Engine.Info.HighScore
+﻿namespace Tetris.Engine.UI.Info.HighScore
 {
     public interface IHighScore
     {

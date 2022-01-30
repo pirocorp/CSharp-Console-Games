@@ -1,8 +1,9 @@
-﻿namespace Tetris.Engine.Info
+﻿namespace Tetris.Engine.UI.Info
 {
-    using Extensions;
-    using Tetris.Engine.ConsoleRenderer;
-    using Tetris.Engine.Info.HighScore;
+    using Tetris.Engine.UI.ConsoleRenderer;
+
+    using Tetris.Engine.UI.Info.HighScore;
+    using Tetris.Extensions;
 
     using static GameConstants;
 

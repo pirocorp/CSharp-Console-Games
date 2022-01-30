@@ -1,4 +1,4 @@
-﻿namespace Tetris.Engine.ConsoleRenderer
+﻿namespace Tetris.Engine.UI.ConsoleRenderer
 {
     public interface IRenderer
     {

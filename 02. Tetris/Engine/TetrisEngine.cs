@@ -1,26 +1,20 @@
 ﻿namespace Tetris.Engine
 {
-    using Tetris.Engine.Border;
     using Tetris.Engine.CollisionDetector;
-    using Tetris.Engine.ConsoleRenderer;
-    using Tetris.Engine.Info;
     using Tetris.Engine.Music;
-    using Tetris.Engine.TetrisField;
     using Tetris.Engine.TetrisFigureProvider;
     using Tetris.Engine.TetrisFigureProvider.Figures;
+    using Tetris.Engine.UI;
 
     using static GameConstants;
 
     public class TetrisEngine : IDisposable
     {
-        private readonly IBorder border;
         private readonly ICollisionDetector collisionDetector;
         private readonly ITetrisFigureProvider figureProvider;
-        private readonly IInfo info;
         private readonly Random random;
-        private readonly IRenderer renderer;
-        private readonly ITetrisField tetrisField;
         private readonly TetrisSounds tetrisSounds;
+        private readonly UserInterface userInterface;
 
         private int currentFigureRow;
         private int currentFigureCol;
@@ -34,21 +28,15 @@
         private bool disposedValue;
 
         public TetrisEngine(
-            IBorder border,
             ICollisionDetector collisionDetector,
-            IInfo info,
-            ITetrisField tetrisField,
             ITetrisFigureProvider figureProvider,
-            IRenderer renderer)
+            UserInterface userInterface)
         {
-            this.border = border;
             this.collisionDetector = collisionDetector;
             this.figureProvider = figureProvider;
-            this.info = info;
             this.random = new Random();
-            this.renderer = renderer;
-            this.tetrisField = tetrisField;
             this.tetrisSounds = new TetrisSounds();
+            this.userInterface = userInterface;
 
             this.frame = 0;
             this.gameSpeedDenominator = TetrisInitialSpeedDenominator;
@@ -71,7 +59,7 @@
                 Thread.Sleep(20);
             }
 
-            this.renderer.DisplayGameOverMessage(this.score);
+            this.userInterface.GameOver(this.score);
             Console.ReadLine();
         }
 
@@ -96,7 +84,7 @@
 
         private void Scoring()
         {
-            var currentLines = this.tetrisField.GetFullLines();
+            var currentLines = this.userInterface.GetFullLines();
 
             if (currentLines is 0)
             {
@@ -126,14 +114,6 @@
             }
         }
 
-        private void DrawCurrentFigure()
-        {
-            var rowOffset = this.currentFigureRow + BorderOffset;
-            var colOffset = this.currentFigureCol + BorderOffset;
-
-            this.currentFigure.Render(rowOffset, colOffset);
-        }
-
         private void GetRandomFigure()
         {
             var figure = this.figureProvider.GetRandomFigure();
@@ -148,7 +128,6 @@
         {
             this.gameState = GameState.Stopped;
             this.tetrisSounds.StopMusic();
-            this.info.AddScore(this.score);
 
             return true;
         }
@@ -156,11 +135,13 @@
         private void GameStart()
         {
             this.gameState = GameState.Started;
-            this.border.Render();
+            this.userInterface.Initialize();
 
             if (MusicIsEnabled)
             {
+#pragma warning disable CS0162 // Unreachable code detected
                 this.tetrisSounds.PlayMusic();
+#pragma warning restore CS0162 // Unreachable code detected
             }
         }
 
@@ -263,20 +244,19 @@
 
             if (success)
             {
-                this.renderer.NewFrame();
+                this.userInterface.RequestNewFrame();
             }
         }
 
         private void Render()
         {
-            this.info.Render(
+            this.userInterface.Render(
+                this.currentFigure,
                 this.score,
                 this.frame,
                 this.level,
                 this.currentFigureRow,
                 this.currentFigureCol);
-            this.tetrisField.Render();
-            this.DrawCurrentFigure();
         }
 
         private void UpdateState()
@@ -287,7 +267,7 @@
             }
 
             this.frame = 0;
-            this.renderer.NewFrame();
+            this.userInterface.RequestNewFrame();
 
             var hasCollision =
                 this.collisionDetector
@@ -300,7 +280,7 @@
                 return;
             }
 
-            this.tetrisField.AddFigure(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
+            this.userInterface.AddFigure(this.currentFigure, this.currentFigureRow, this.currentFigureCol);
 
             this.Scoring();
 

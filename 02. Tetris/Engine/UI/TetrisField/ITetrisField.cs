@@ -1,4 +1,4 @@
-﻿namespace Tetris.Engine.TetrisField
+﻿namespace Tetris.Engine.UI.TetrisField
 {
     using Tetris.Engine.TetrisFigureProvider.Figures;
 

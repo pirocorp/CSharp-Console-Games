@@ -1,8 +1,8 @@
-﻿namespace Tetris.Engine.Info.HighScore
+﻿namespace Tetris.Engine.UI.Info.HighScore
 {
     using System.Text.RegularExpressions;
 
-    using Tetris.Engine.ConsoleRenderer;
+    using Tetris.Engine.UI.ConsoleRenderer;
 
     using static GameConstants;
 

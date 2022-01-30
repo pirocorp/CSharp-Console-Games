@@ -1,4 +1,4 @@
-﻿namespace Tetris.Engine.Border
+﻿namespace Tetris.Engine.UI.Border
 {
     public interface IBorder
     {

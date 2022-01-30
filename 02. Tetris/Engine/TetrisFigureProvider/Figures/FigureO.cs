@@ -1,6 +1,6 @@
 ﻿namespace Tetris.Engine.TetrisFigureProvider.Figures
 {
-    using Tetris.Engine.ConsoleRenderer;
+    using Tetris.Engine.UI.ConsoleRenderer;
 
     public class FigureO : FigureBase
     {

@@ -1,38 +1,48 @@
 ﻿namespace Tetris.Extensions
 {
+    using Engine.UI.ConsoleRenderer;
+    using Engine.UI.Info.HighScore;
     using Microsoft.Extensions.DependencyInjection;
-
     using Tetris.Engine;
-    using Tetris.Engine.Border;
     using Tetris.Engine.CollisionDetector;
-    using Tetris.Engine.ConsoleRenderer;
-    using Tetris.Engine.Info;
-    using Tetris.Engine.TetrisField;
     using Tetris.Engine.TetrisFigureProvider;
+    using Tetris.Engine.UI;
+    using Tetris.Engine.UI.Border;
+    using Tetris.Engine.UI.Info;
+    using Tetris.Engine.UI.TetrisField;
 
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddTetrisEngine(this IServiceCollection services)
         {
-            services.AddTransient(TetrisEngineFactory);
+            services
+                .AddUserInterface()
+                .AddEngine();
 
             return services;
         }
 
-        private static TetrisEngine TetrisEngineFactory(IServiceProvider services)
+        private static IServiceCollection AddUserInterface(this IServiceCollection services)
         {
-            using var scope = services.CreateScope();
+            services
+                .AddSingleton<IBorder, Border>()
+                .AddSingleton<IInfo, Info>()
+                .AddSingleton<IHighScore, HighScore>()
+                .AddSingleton<ITetrisField, TetrisField>()
+                .AddSingleton<IRenderer, ConsoleRenderer>()
+                .AddSingleton<UserInterface>();
 
-            var border = scope.ServiceProvider.GetRequiredService<IBorder>();
-            var collisionDetector = scope.ServiceProvider.GetRequiredService<ICollisionDetector>();
-            var info = scope.ServiceProvider.GetRequiredService<IInfo>();
-            var tetrisField = scope.ServiceProvider.GetRequiredService<ITetrisField>();
-            var figureProvider = scope.ServiceProvider.GetRequiredService<ITetrisFigureProvider>();
-            var renderer = scope.ServiceProvider.GetRequiredService<IRenderer>();
+            return services;
+        }
 
-            var tetrisEngine = new TetrisEngine(border, collisionDetector, info, tetrisField, figureProvider, renderer);
+        private static IServiceCollection AddEngine(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<ICollisionDetector, CollisionDetector>()
+                .AddSingleton<ITetrisFigureProvider, TetrisFigureProvider>()
+                .AddSingleton<TetrisEngine>();
 
-            return tetrisEngine;
+            return services;
         }
     }
 }

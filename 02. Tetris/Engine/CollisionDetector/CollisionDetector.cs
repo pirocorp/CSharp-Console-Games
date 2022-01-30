@@ -1,7 +1,7 @@
 ﻿namespace Tetris.Engine.CollisionDetector
 {
-    using Tetris.Engine.TetrisField;
     using Tetris.Engine.TetrisFigureProvider.Figures;
+    using Tetris.Engine.UI.TetrisField;
 
     using static GameConstants;
 

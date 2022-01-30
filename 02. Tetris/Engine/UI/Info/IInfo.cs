@@ -1,4 +1,4 @@
-﻿namespace Tetris.Engine.Info
+﻿namespace Tetris.Engine.UI.Info
 {
     public interface IInfo
     {

@@ -1,8 +1,8 @@
-﻿namespace Tetris.Engine.Border
+﻿namespace Tetris.Engine.UI.Border
 {
     using System.Text;
 
-    using Tetris.Engine.ConsoleRenderer;
+    using Tetris.Engine.UI.ConsoleRenderer;
 
     using static Tetris.GameConstants;
 

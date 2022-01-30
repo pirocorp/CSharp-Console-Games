@@ -1,7 +1,7 @@
-﻿namespace Tetris.Engine.TetrisField
+﻿namespace Tetris.Engine.UI.TetrisField
 {
-    using Tetris.Engine.ConsoleRenderer;
     using Tetris.Engine.TetrisFigureProvider.Figures;
+    using Tetris.Engine.UI.ConsoleRenderer;
 
     using static GameConstants;
 
