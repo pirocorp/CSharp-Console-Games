@@ -4,21 +4,23 @@
     using Tetris.Engine.CollisionDetector;
     using Tetris.Engine.ConsoleRenderer;
     using Tetris.Engine.Info;
+    using Tetris.Engine.Music;
     using Tetris.Engine.TetrisField;
     using Tetris.Engine.TetrisFigureProvider;
     using Tetris.Engine.TetrisFigureProvider.Figures;
 
     using static GameConstants;
 
-    public class TetrisEngine
+    public class TetrisEngine : IDisposable
     {
         private readonly IBorder border;
         private readonly ICollisionDetector collisionDetector;
+        private readonly ITetrisFigureProvider figureProvider;
         private readonly IInfo info;
         private readonly Random random;
         private readonly IRenderer renderer;
         private readonly ITetrisField tetrisField;
-        private readonly ITetrisFigureProvider figureProvider;
+        private readonly TetrisSounds tetrisSounds;
 
         private int currentFigureRow;
         private int currentFigureCol;
@@ -29,6 +31,7 @@
         private int level;
         private int lines;
         private int score;
+        private bool disposedValue;
 
         public TetrisEngine(
             IBorder border,
@@ -40,11 +43,12 @@
         {
             this.border = border;
             this.collisionDetector = collisionDetector;
+            this.figureProvider = figureProvider;
             this.info = info;
             this.random = new Random();
             this.renderer = renderer;
             this.tetrisField = tetrisField;
-            this.figureProvider = figureProvider;
+            this.tetrisSounds = new TetrisSounds();
 
             this.frame = 0;
             this.gameSpeedDenominator = TetrisInitialSpeedDenominator;
@@ -71,12 +75,33 @@
             Console.ReadLine();
         }
 
+        public void Dispose()
+        {
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
+            {
+                if (disposing)
+                {
+                    this.tetrisSounds.Dispose();
+                }
+
+                this.disposedValue = true;
+            }
+        }
+
         private void Scoring()
         {
             var currentLines = this.tetrisField.GetFullLines();
 
             if (currentLines is 0)
             {
+                this.tetrisSounds.PlayFall();
+
                 return;
             }
 
@@ -90,6 +115,15 @@
             this.gameSpeedDenominator = TetrisInitialSpeedDenominator - (this.level * LevelSpeedIncrease);
 
             this.score += ScorePerLines[currentLines] * this.level;
+
+            if (currentLines is 4)
+            {
+                this.tetrisSounds.PlayTetris();
+            }
+            else
+            {
+                this.tetrisSounds.PlayClear();
+            }
         }
 
         private void DrawCurrentFigure()
@@ -113,6 +147,7 @@
         private bool GameOver()
         {
             this.gameState = GameState.Stopped;
+            this.tetrisSounds.StopMusic();
             this.info.AddScore(this.score);
 
             return true;
@@ -122,6 +157,11 @@
         {
             this.gameState = GameState.Started;
             this.border.Render();
+
+            if (MusicIsEnabled)
+            {
+                this.tetrisSounds.PlayMusic();
+            }
         }
 
         private bool MoveDown()

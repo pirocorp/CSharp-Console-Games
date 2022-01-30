@@ -1,5 +1,6 @@
 ﻿namespace Tetris.Engine.Info
 {
+    using Extensions;
     using Tetris.Engine.ConsoleRenderer;
     using Tetris.Engine.Info.HighScore;
 
@@ -33,14 +34,15 @@
             this.renderer.RenderObject(level.ToString(), 8, 3 + TetrisFieldWidth, ScoreColor);
 
             this.renderer.RenderObject("Frame:", 10, 3 + TetrisFieldWidth, ScoreColor);
-            this.renderer.RenderObject(frame.ToString(), 11, 3 + TetrisFieldWidth, ScoreColor);
+            this.renderer.RenderObject(frame.PadRight(2), 11, 3 + TetrisFieldWidth, ScoreColor);
 
             this.renderer.RenderObject("Position:", 13, 3 + TetrisFieldWidth, ScoreColor);
-            this.renderer.RenderObject($"{currentFigureRow},{currentFigureCol}", 14, 3 + TetrisFieldWidth, ScoreColor);
+            this.renderer.RenderObject($"{currentFigureRow.PadRight(2)},{currentFigureCol.PadRight(2)}", 14, 3 + TetrisFieldWidth, ScoreColor);
 
             this.renderer.RenderObject("Keys:", 16, 3 + TetrisFieldWidth, ScoreColor);
-            this.renderer.RenderObject($"    ^", 17, 3 + TetrisFieldWidth, ScoreColor);
-            this.renderer.RenderObject($"  < v >", 18, 3 + TetrisFieldWidth, ScoreColor);
+            this.renderer.RenderObject($"       ^", 17, 3 + TetrisFieldWidth, ScoreColor);
+            this.renderer.RenderObject($"     <   >", 18, 3 + TetrisFieldWidth, ScoreColor);
+            this.renderer.RenderObject($"       v  ", 19, 3 + TetrisFieldWidth, ScoreColor);
         }
     }
 }

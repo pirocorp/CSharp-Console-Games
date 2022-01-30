@@ -18,13 +18,15 @@
 
         public const int LevelChangeThreshold = 10;
 
+        public const bool MusicIsEnabled = false;
+
         public const int TetrisFieldWidth = 10;
 
         public const int TetrisFieldHeight = 20;
 
         public const int TetrisInitialSpeedDenominator = 51;
 
-        public const ConsoleColor BorderColor = ConsoleColor.Gray;
+        public const ConsoleColor BorderColor = ConsoleColor.DarkGray;
 
         public const ConsoleColor GameOverColor = ConsoleColor.DarkRed;
 
@@ -32,7 +34,7 @@
 
         public const ConsoleColor ScoreColor = ConsoleColor.DarkYellow;
 
-        public const ConsoleColor TetrisColor = ConsoleColor.DarkGray;
+        public const ConsoleColor TetrisColor = ConsoleColor.Gray;
 
         public static readonly int[] ScorePerLines = { 0, 40, 100, 300, 1200 };
     }
