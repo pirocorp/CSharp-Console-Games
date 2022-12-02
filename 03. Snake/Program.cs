@@ -3,7 +3,6 @@ namespace Snake;
 
 using Engine;
 
-// TODO: Extract Snake class and Add Abstract Factory for Game Objects
 public static class Program
 {
     public static void Main()

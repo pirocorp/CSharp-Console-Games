@@ -3,9 +3,9 @@
 using System;
 using Renderers;
 
-public abstract class GameObject : IRenderable
+public abstract class RenderableBase : IRenderable
 {
-    protected GameObject(
+    protected RenderableBase(
         Position position,
         ConsoleColor color,
         string representation)

@@ -2,7 +2,7 @@
 
 using System;
 
-public class Obstacle : GameObject
+public class Obstacle : RenderableBase
 {
     public Obstacle(
         Position position) 

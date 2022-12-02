@@ -6,7 +6,7 @@ using System;
 
 public interface IRender
 {
-    void Render(IRenderable gameObject);
+    void Render(RenderableBase renderableBase);
 
     void Render(Position position, ConsoleColor color, string item);
 
@@ -14,7 +14,7 @@ public interface IRender
 
     void WriteLine(Position position, ConsoleColor color, string line);
 
-    void Clear(IRenderable gameObject);
+    void Clear(RenderableBase renderableBase);
 
     void Clear(Position position);
 }

@@ -5,17 +5,14 @@ using System.Threading;
 using System;
 using System.Linq;
 
-using Extensions;
-using GameObjects.Snake;
 using Snake.GameObjects;
 using Snake.Renderers;
 
 public class SnakeEngine
 {
     private const int FoodDisappearTime = 8000;
-    private readonly IRender renderer = new ConsoleRenderer();
-    private readonly List<Obstacle> obstacles = new ();
-    private readonly Dictionary<Direction, Position> directions;
+    private readonly IRender renderer;
+    private readonly List<RenderableBase> obstacles;
 
     private int height;
     private int width;
@@ -26,20 +23,23 @@ public class SnakeEngine
     private Direction currentDirection = Direction.Right;
 
     private Food food = new (0,0);
-    private readonly Queue<SnakePart> snakeElements = new ();
+    private readonly Snake snake;
 
     public SnakeEngine()
     {
-        this.directions = new Dictionary<Direction, Position>
+        this.ConsoleInit();
+
+        this.obstacles = new List<RenderableBase>()
         {
-            {Direction.Right, new (0, 1)},
-            {Direction.Left, new (0, -1)},
-            {Direction.Down, new (1, 0)},
-            {Direction.Up, new (-1, 0)},
+            new Obstacle(new Position(12, 12)),
+            new Obstacle(new Position(14, 20)),
+            new Obstacle(new Position(7, 7)),
+            new Obstacle(new Position(19, 19)),
+            new Obstacle(new Position(6, 9)),
         };
 
-        this.ConsoleInit();
-        this.GameObjectsInit();
+        this.renderer = new ConsoleRenderer();
+        this.snake = new Snake();
     }
 
     public void Run()
@@ -49,28 +49,18 @@ public class SnakeEngine
         while (true)
         {
             this.negativePoints++;
-
             this.ReadInput();
 
-            var oldSnakeHead = this.snakeElements.Last();
-            var snakeNewHeadPosition = this.CalculateSnakeNewHeadPosition(oldSnakeHead);
+            this.snake.MoveSnake(this.currentDirection);
 
-            if (this.DetectSnakeCollision(snakeNewHeadPosition))
+            if (this.DetectSnakeCollision())
             {
                 return;
             }
 
-            this.renderer.Render(oldSnakeHead);
-            this.snakeElements.Enqueue(new SnakeBodyPart(snakeNewHeadPosition));
+            this.FeedSnake();
+            this.snake.Render(this.renderer);
 
-            var snakeNewHead = new SnakeHead(snakeNewHeadPosition)
-            {
-                Direction = this.currentDirection
-            };
-
-            this.renderer.Render(snakeNewHead);
-
-            this.FeedSnake(snakeNewHeadPosition);
             this.MoveFood();
             this.food.Render(this.renderer);
 
@@ -87,29 +77,9 @@ public class SnakeEngine
         this.width = Console.WindowWidth;
     }
 
-    private void GameObjectsInit()
-    {
-        for (var i = 0; i <= 5; i++)
-        {
-            this.snakeElements.Enqueue(new SnakeBodyPart(new Position(0, i)));
-        }
-
-        var obstaclesObjects = new List<Obstacle>()
-        {
-            new(new Position(12, 12)),
-            new(new Position(14, 20)),
-            new(new Position(7, 7)),
-            new(new Position(19, 19)),
-            new(new Position(6, 9)),
-        };
-
-        this.obstacles.AddRange(obstaclesObjects);
-    }
-
     private void Initialize()
     {
         this.obstacles.ForEach(o => o.Render(this.renderer));
-        this.snakeElements.ForeEach(e => e.Render(this.renderer));
 
         var foodPosition = this.GetFreePosition();
         this.food = new Food(foodPosition);
@@ -126,10 +96,9 @@ public class SnakeEngine
         {
             position = Position.GetRandomPosition(this.height, this.width);
         }
-        while (this.snakeElements.Any(x => x.Position == position) 
+        while (this.snake.Elements.Any(x => x == position) 
                || this.obstacles.Any(x => x.Position == position)
-               || (this.food.Position.Row != position.Row 
-                   && this.food.Position.Col != position.Row));
+               || (this.food.Position == position));
 
         return position;
     } 
@@ -149,72 +118,57 @@ public class SnakeEngine
         }
     }
 
-    private Position CalculateSnakeNewHeadPosition(SnakePart oldSnakeHead)
+    private bool DetectSnakeCollision()
     {
-        var nextDirection = this.directions[currentDirection];
+        var snakeNewHeadPosition = this.snake.Position;
+        var snakeElements = snake.Elements
+            .Take(this.snake.Size - 1)
+            .ToArray();
 
-        var snakeNewHeadPosition = new Position(
-            oldSnakeHead.Position.Row + nextDirection.Row,
-            oldSnakeHead.Position.Col + nextDirection.Col);
-
-        if (snakeNewHeadPosition.Col < 0) snakeNewHeadPosition.Col = this.width - 1;
-        if (snakeNewHeadPosition.Row < 0) snakeNewHeadPosition.Row = this.height - 1;
-        if (snakeNewHeadPosition.Row >= this.height) snakeNewHeadPosition.Row = 0;
-        if (snakeNewHeadPosition.Col >= this.width) snakeNewHeadPosition.Col = 0;
-
-        return snakeNewHeadPosition;
-    }
-
-    private bool DetectSnakeCollision(Position snakeNewHeadPosition)
-    {
         var collisionDetected
-            = this.snakeElements.Any(x => x.Position == snakeNewHeadPosition)
+            = snakeElements.Any(x => x == snakeNewHeadPosition)
               || this.obstacles.Any(x => x.Position == snakeNewHeadPosition);
 
         if (collisionDetected)
         {
-            var userPoints = (this.snakeElements.Count - 6) * 100 - negativePoints;
+            var userPoints = (this.snake.Size - 7) * 100 - negativePoints;
             userPoints = Math.Max(userPoints, 0);
 
-            this.renderer.WriteMultiLine(
-                new Position(0, 0), 
-                ConsoleColor.Red, 
+            var gameOver = new GameOverMessage(
                 "Game over!",
                 $"Your points are: {userPoints}");
+
+            gameOver.Render(this.renderer);
         }
 
         return collisionDetected; 
     }
 
-    private void FeedSnake(Position snakeNewHeadPosition)
+    private void FeedSnake()
     {
-        if (snakeNewHeadPosition.Col == this.food.Position.Col 
-            && snakeNewHeadPosition.Row == this.food.Position.Row)
+        if (!this.snake.Feed(this.food))
         {
-            var foodPosition = this.GetFreePosition();
-            this.food = new Food(foodPosition);
-
-            lastFoodTime = Environment.TickCount;
-            this.renderer.Render(food);
-
-            this.sleepTime--;
-
-            var obstaclePosition = this.GetFreePosition();
-            var obstacle = new Obstacle(obstaclePosition);
-
-            this.obstacles.Add(obstacle);
-            obstacle.Render(this.renderer);
+            return;
         }
-        else
-        {
-            var last = this.snakeElements.Dequeue();
-            this.renderer.Clear(last);
-        }
+
+        var foodPosition = this.GetFreePosition();
+        this.food = new Food(foodPosition);
+
+        lastFoodTime = Environment.TickCount;
+        this.renderer.Render(food);
+
+        this.sleepTime--;
+
+        var obstaclePosition = this.GetFreePosition();
+        var obstacle = new Obstacle(obstaclePosition);
+
+        this.obstacles.Add(obstacle);
+        obstacle.Render(this.renderer);
     }
 
     private void MoveFood()
     {
-        if (Environment.TickCount - lastFoodTime < FoodDisappearTime)
+        if (Environment.TickCount - this.lastFoodTime < FoodDisappearTime)
         {
             return;
         }

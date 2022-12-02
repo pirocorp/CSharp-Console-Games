@@ -6,11 +6,11 @@ using Snake.GameObjects;
 
 public class ConsoleRenderer : IRender
 {
-    public void Render(IRenderable gameObject)
+    public void Render(RenderableBase renderableBase)
         => this.Render(
-            gameObject.Position,
-            gameObject.Color,
-            gameObject.Representation);
+            renderableBase.Position,
+            renderableBase.Color,
+            renderableBase.Representation);
 
     public void Render(
         Position position,
@@ -40,8 +40,8 @@ public class ConsoleRenderer : IRender
             color,
             $"{line}{Environment.NewLine}");
 
-    public void Clear(IRenderable gameObject)
-        => this.Clear(gameObject.Position);
+    public void Clear(RenderableBase renderableBase)
+        => this.Clear(renderableBase.Position);
 
     public void Clear(Position position)
         => Render(position, ConsoleColor.Black, " ");
